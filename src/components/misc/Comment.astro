@@ -1,0 +1,103 @@
+---
+import { giscusConfig } from "../../config";
+
+const { enable, repo, repoId, category, categoryId } = giscusConfig;
+const isConfigured = enable && repo && repoId && categoryId;
+---
+
+{enable && (
+  <div class="card-base p-6 my-4 relative w-full onload-animation">
+    {!isConfigured ? (
+      <div class="text-center p-6 border border-dashed border-[var(--primary)] rounded-lg text-black/50 dark:text-white/50">
+        <p class="font-bold text-[var(--primary)] mb-2">评论系统待配置 (Giscus)</p>
+        <p class="text-sm mb-4">
+          评论组件已启用，但尚未填写完成配置。请按照以下步骤激活：
+        </p>
+        <ol class="text-left text-xs list-decimal pl-6 mx-auto max-w-md space-y-1.5">
+          <li>前往您的 GitHub 仓库设置，开启 <strong>Discussions</strong>。</li>
+          <li>在 GitHub 上安装并授权 <strong><a href="https://github.com/apps/giscus" target="_blank" class="text-[var(--primary)] underline">giscus</a></strong> 应用。</li>
+          <li>在 <strong><a href="https://giscus.app/zh-CN" target="_blank" class="text-[var(--primary)] underline">giscus.app</a></strong> 中输入仓库生成配置，复制 <code>categoryId</code>。</li>
+          <li>修改项目中的 <strong><code>src/config.ts</code></strong>，在 <code>giscusConfig</code> 中填入 <code>categoryId</code>。</li>
+        </ol>
+      </div>
+    ) : (
+      <div class="giscus w-full"></div>
+    )}
+  </div>
+)}
+
+{isConfigured && (
+  <script is:inline define:vars={{ repo, repoId, category, categoryId }}>
+    function loadGiscus() {
+      const container = document.querySelector('.giscus');
+      if (!container) return;
+
+      // Prevent duplicate loading
+      if (container.querySelector('iframe.giscus-frame') || container.querySelector('script[src*="giscus.app"]')) {
+        return;
+      }
+
+      container.innerHTML = '';
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const theme = isDark ? 'dark' : 'light';
+
+      const script = document.createElement('script');
+      script.src = 'https://giscus.app/client.js';
+      script.setAttribute('data-repo', repo);
+      script.setAttribute('data-repo-id', repoId);
+      script.setAttribute('data-category', category);
+      script.setAttribute('data-category-id', categoryId);
+      script.setAttribute('data-mapping', 'pathname');
+      script.setAttribute('data-strict', '0');
+      script.setAttribute('data-reactions-enabled', '1');
+      script.setAttribute('data-emit-metadata', '0');
+      script.setAttribute('data-input-position', 'bottom');
+      script.setAttribute('data-theme', theme);
+      script.setAttribute('data-lang', 'zh-CN');
+      script.setAttribute('crossorigin', 'anonymous');
+      script.async = true;
+      container.appendChild(script);
+    }
+
+    // Set up MutationObserver to sync theme changes
+    if (!window.giscusThemeObserver) {
+      window.giscusThemeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.attributeName === 'class') {
+            const isDark = document.documentElement.classList.contains('dark');
+            const theme = isDark ? 'dark' : 'light';
+            const iframe = document.querySelector('iframe.giscus-frame');
+            if (iframe) {
+              iframe.contentWindow.postMessage(
+                { giscus: { setConfig: { theme } } },
+                'https://giscus.app'
+              );
+            }
+          }
+        });
+      });
+      window.giscusThemeObserver.observe(document.documentElement, { attributes: true });
+    }
+
+    // Initialize
+    loadGiscus();
+
+    // Hook into Swup page transitions
+    if (!window.giscusSwupBound) {
+      window.giscusSwupBound = true;
+      
+      const handleSwup = () => {
+        setTimeout(loadGiscus, 50);
+      };
+
+      if (window.swup) {
+        window.swup.hooks.on('content:replace', handleSwup);
+      } else {
+        document.addEventListener('swup:enable', () => {
+          window.swup.hooks.on('content:replace', handleSwup);
+        });
+      }
+    }
+  </script>
+)}

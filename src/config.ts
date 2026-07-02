@@ -4,6 +4,7 @@ import type {
 	NavBarConfig,
 	ProfileConfig,
 	SiteConfig,
+	GiscusConfig,
 } from "./types/config";
 
 export const siteConfig: SiteConfig = {
@@ -70,4 +71,12 @@ export const licenseConfig: LicenseConfig = {
 
 export const expressiveCodeConfig: ExpressiveCodeConfig = {
 	theme: "github-dark",
+};
+
+export const giscusConfig: GiscusConfig = {
+	enable: true,
+	repo: "ybttkx/newblog",
+	repoId: "R_kgDOQoYPWQ",
+	category: "Announcements",
+	categoryId: "DIC_kwDOQoYPWc4DAW2w",
 };

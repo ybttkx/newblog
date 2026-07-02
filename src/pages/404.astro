@@ -1,0 +1,21 @@
+---
+import { Icon } from "astro-icon/components";
+import MainGridLayout from "../layouts/MainGridLayout.astro";
+import { url } from "../utils/url-utils";
+---
+
+<MainGridLayout title="404" description="404 - 页面未找到">
+    <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-[30rem] items-center justify-center">
+        <div class="card-base z-10 px-9 py-16 relative w-full flex flex-col items-center justify-center text-center">
+            <Icon name="material-symbols:sentiment-very-dissatisfied-outline-rounded" class="text-8xl text-[var(--primary)] mb-6 opacity-80" />
+            <h1 class="text-7xl font-bold text-[var(--primary)] mb-4 font-mono">404</h1>
+            <p class="text-lg text-black/50 dark:text-white/50 mb-8 max-w-md">
+                糟糕！您访问的页面好像迷路了，或者已经被移除。
+            </p>
+            <a href={url('/')} class="btn-card h-12 px-6 rounded-xl font-bold text-black/75 dark:text-white/75 active:scale-95 transition-all flex items-center justify-center gap-2">
+                <Icon name="material-symbols:home-outline-rounded" class="text-xl" />
+                返回首页
+            </a>
+        </div>
+    </div>
+</MainGridLayout>
