@@ -4,15 +4,15 @@ import Icon from "@iconify/svelte";
 const routes = [
   {
     name: "主线路 (亚洲)",
-    url: "https://ybovo.com",
+    url: "https://blog.ybovo.com",
   },
   {
     name: "全球线路 (Cloudflare)",
-    url: "https://cf.ybovo.com",
+    url: "https://cf.blog.ybovo.com",
   },
   {
     name: "国外线路 (EdgeOne)",
-    url: "https://eo.ybovo.com",
+    url: "https://eo.blog.ybovo.com",
   },
 ];
 
@@ -111,7 +111,7 @@ $effect(() => {
     onclick={toggleDropdown} 
     onmouseenter={showPanel}
   >
-    <Icon icon="material-symbols:wifi-outline" class="text-[1.25rem]"></Icon>
+    <Icon icon="tabler:switch-3" class="text-[1.25rem]" />
   </button>
 
   {#if isOpen}
