@@ -1,5 +1,5 @@
 ---
-title: 折腾日记：Next.js 项目从 Pages 到 Workers 再到 EdgeOne 的“填坑”血泪史
+title: 折腾日记：Next.js 项目 from Pages 到 Workers 再到 EdgeOne 的“填坑”血泪史
 published: 2026-07-04
 description: 记录折腾 Next.js 项目从 Pages 部署到 Cloudflare Workers 再到 EdgeOne 的全过程，总结了 open-next 校验冲突、Edge 运行时、图片优化以及 npm 依赖冲突的避坑实战经验。
 tags:
@@ -93,7 +93,7 @@ images: {
 - 如果是，则亮起大号的 **IPv6 绿色徽标**，点击可直达 `https://ipw.wsmdn.top/` 进行入站检测。
 - 如果检测到是 Vercel，则隐藏图标，显示文字：`本线路不支持ipv6，如有需要可点击右侧WiFi图标切换cloudflare或edgeone`，并附带文字检测链接。
 
-*注：期间腾讯云 EdgeOne 默认的 CNAME 解析可能没有广播 AAAA 记录，需要在 EdgeOne 控制台手动把域名的 “IPv6 访问” 开关打开，才能正常解析和渲染。*
+*注：期间腾讯云 EdgeOne 默认 of CNAME 解析可能没有广播 AAAA 记录，需要在 EdgeOne 控制台手动把域名的 “IPv6 访问” 开关打开，才能正常解析和渲染。*
 
 ---
 
@@ -115,4 +115,4 @@ legacy-peer-deps=true
 
 经过一整天的编译、改 Bug、改配置、删库、重建，我的个人主页终于完美活在了边缘网络上。在 Bing 站长平台提交了最新的 `sitemap.xml` 和 URL 申请后，我相信搜索“毅白”排在第一页首位的目标指日可待。
 
-折腾的乐趣就在于此：虽然过程满是痛苦 of Error Log，但当一切绿灯亮起、全线路无缝访问的那一刻，一切都是值得的！
+折腾的乐趣就在于此：虽然过程满是痛苦的 Error Log，但当一切绿灯亮起、全线路无缝访问的那一刻，一切都是值得的！
