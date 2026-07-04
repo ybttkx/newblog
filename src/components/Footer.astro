@@ -52,4 +52,182 @@ const currentYear = new Date().getFullYear();
 		</a>
 		主题
 	</div>
+
+	<!-- CDN 节点 IP 与宿主动态信息行 -->
+	<div id="cdn-info" class="mt-4 flex flex-col sm:flex-row items-center justify-center gap-1.5 text-sm font-medium text-gray-500/80 dark:text-gray-400/80 hidden">
+		<span>您访问的 CDN 节点 IP 是: <span id="server-ip" class="font-mono font-bold text-[var(--primary)]">获取中...</span></span>
+		<span class="hidden sm:inline text-gray-300 dark:text-gray-700">|</span>
+		<span>您的客户端 IP 是: <span id="client-ip" class="font-mono font-bold text-[var(--primary)]">获取中...</span></span>
+		<span class="hidden sm:inline text-gray-300 dark:text-gray-700">|</span>
+		<div class="flex items-center gap-1">
+			<span>属于:</span>
+			<span id="provider-container" class="flex items-center gap-1"></span>
+		</div>
+	</div>
+
+	<!-- IPv6 标志链接 -->
+	<div id="ipv6-container" class="mt-3 flex justify-center hidden">
+		<a
+			href="https://ipw.wsmdn.top/"
+			target="_blank"
+			rel="noopener noreferrer"
+			class="hover:opacity-80 active:scale-95 transition inline-block"
+		>
+			<img
+				src="/SVG/ipv6-s1.svg"
+				alt="本站支持IPv6访问"
+				class="h-6 w-auto"
+			/>
+		</a>
+	</div>
+
+	<!-- Vercel 线路不支持提示 -->
+	<div id="vercel-warning" class="mt-3 flex flex-col items-center gap-1.5 text-sm text-gray-500 font-medium hidden">
+		<p>本线路不支持ipv6，如有需要可点击右侧WiFi图标切换cloudflare或edgeone</p>
+		<a
+			href="https://ipw.wsmdn.top/"
+			target="_blank"
+			rel="noopener noreferrer"
+			class="underline hover:text-gray-700 dark:hover:text-gray-300 transition"
+		>
+			点击检测本机是否支持ipv6
+		</a>
+	</div>
 </div>
+
+<script is:inline>
+  async function detectCDN() {
+    const hostname = window.location.hostname;
+    const cdnInfo = document.getElementById("cdn-info");
+    const serverIpEl = document.getElementById("server-ip");
+    const clientIpEl = document.getElementById("client-ip");
+    const providerContainer = document.getElementById("provider-container");
+    const ipv6Container = document.getElementById("ipv6-container");
+    const vercelWarning = document.getElementById("vercel-warning");
+
+    if (!cdnInfo) return;
+
+    let isVercel = false;
+    let isCloudflare = false;
+    let isEdgeOne = false;
+    let coloCode = "";
+
+    // 1. Detect provider from hostname
+    if (hostname.includes("vercel") || hostname === "ybovo.com" || hostname === "localhost" || hostname === "127.0.0.1") {
+      isVercel = true;
+    } else if (hostname.includes("cf") || hostname.includes("workers.dev") || hostname.includes("pages.dev")) {
+      isCloudflare = true;
+    } else if (hostname.includes("eo") || hostname.includes("pages.dnsoe8.com")) {
+      isEdgeOne = true;
+    } else {
+      // Default fallback
+      isVercel = true;
+    }
+
+    // 2. Fetch Client IP & Cloudflare Colo code
+    let clientIp = "未知";
+    try {
+      if (isCloudflare) {
+        const traceRes = await fetch("/cdn-cgi/trace");
+        if (traceRes.ok) {
+          const text = await traceRes.text();
+          const lines = text.split("\n");
+          const data = {};
+          lines.forEach(l => {
+            const parts = l.split("=");
+            if (parts.length === 2) data[parts[0]] = parts[1];
+          });
+          if (data.ip) clientIp = data.ip;
+          if (data.colo) coloCode = data.colo.toUpperCase();
+        }
+      } else {
+        const ipifyRes = await fetch("https://api.ipify.org?format=json");
+        if (ipifyRes.ok) {
+          const json = await ipifyRes.json();
+          clientIp = json.ip;
+        }
+      }
+    } catch (e) {
+      clientIp = "未知";
+    }
+
+    // 3. Fetch Server Anycast IP using DoH
+    let serverIp = "未知";
+    try {
+      if (hostname !== "localhost" && hostname !== "127.0.0.1") {
+        const dnsRes = await fetch(`https://cloudflare-dns.com/dns-query?name=${hostname}&type=A`, {
+          headers: { accept: "application/dns-json" }
+        });
+        if (dnsRes.ok) {
+          const json = await dnsRes.json();
+          if (json.Answer && json.Answer.length > 0) {
+            const aRecords = json.Answer.filter(ans => ans.type === 1);
+            if (aRecords.length > 0) {
+              serverIp = aRecords[0].data;
+            }
+          }
+        }
+      } else {
+        serverIp = "127.0.0.1";
+      }
+    } catch (e) {
+      serverIp = "未知";
+    }
+
+    // Update DOM
+    if (serverIpEl) serverIpEl.innerText = serverIp;
+    if (clientIpEl) clientIpEl.innerText = clientIp;
+
+    // Render Provider with logo
+    let providerHtml = "";
+    if (isVercel) {
+      providerHtml = `
+        <div class="flex items-center gap-1 text-black dark:text-white font-semibold">
+          <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 115 100" xmlns="http://www.w3.org/2000/svg">
+            <path d="M57.5 0L115 100H0L57.5 0Z"></path>
+          </svg>
+          <span>Vercel</span>
+        </div>
+      `;
+    } else if (isCloudflare) {
+      providerHtml = `
+        <div class="flex items-center gap-1 text-[#f38020] font-bold">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12.012 3.993a4.004 4.004 0 0 0-3.834 2.87 4.002 4.002 0 0 0-4.166 4.13c-.002.046-.002.09.001.136a4.015 4.015 0 0 0 .13 1.056 4.005 4.005 0 0 0-2.143 3.513c0 2.21 1.79 4 4 4h12c2.21 0 4-1.79 4-4a4.005 4.005 0 0 0-2.143-3.513c.046-.343.087-.692.122-1.047a4.004 4.004 0 0 0-3.834-3.13L12.012 3.993z"></path>
+          </svg>
+          <span>Cloudflare ${coloCode ? `(${coloCode})` : ""}</span>
+        </div>
+      `;
+    } else if (isEdgeOne) {
+      providerHtml = `
+        <div class="flex items-center gap-1 text-blue-500 dark:text-blue-400 font-bold">
+          <img src="/SVG/edgeone.svg" alt="EdgeOne" class="h-3.5 w-auto dark:brightness-125" />
+          <span>EdgeOne</span>
+        </div>
+      `;
+    } else {
+      providerHtml = `<span class="text-gray-400 dark:text-gray-600 font-mono">本地开发线路</span>`;
+    }
+    
+    if (providerContainer) providerContainer.innerHTML = providerHtml;
+
+    // Show CDN info block
+    cdnInfo.classList.remove("hidden");
+
+    // Handle IPv6 / Vercel warning visibility
+    if (isCloudflare || isEdgeOne) {
+      if (ipv6Container) ipv6Container.classList.remove("hidden");
+    } else if (isVercel) {
+      if (vercelWarning) {
+        // If localhost, don't show vercel warning
+        if (hostname !== "localhost" && hostname !== "127.0.0.1") {
+          vercelWarning.classList.remove("hidden");
+        }
+      }
+    }
+  }
+
+  // Hook into swup navigation to run on page load and page switch
+  document.addEventListener('DOMContentLoaded', detectCDN);
+  document.addEventListener('swup:contentReplaced', detectCDN);
+</script>
