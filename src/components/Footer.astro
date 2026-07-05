@@ -134,7 +134,7 @@ const currentYear = new Date().getFullYear();
           if (data.colo) coloCode = data.colo.toUpperCase();
         }
       } else {
-        const ipifyRes = await fetch("https://api.ipify.org?format=json");
+        const ipifyRes = await fetch("https://api64.ipify.org?format=json");
         if (ipifyRes.ok) {
           const json = await ipifyRes.json();
           clientIp = json.ip;
@@ -144,24 +144,27 @@ const currentYear = new Date().getFullYear();
       clientIp = "未知";
     }
 
-    // 3. Fetch Server Anycast IP using DoH
+    // 3. Fetch Server Anycast IP using DoH based on client connection type (A/AAAA)
     let serverIp = "未知";
+    const isClientIpv6 = clientIp.includes(":");
     try {
       if (hostname !== "localhost" && hostname !== "127.0.0.1") {
-        const dnsRes = await fetch(`https://cloudflare-dns.com/dns-query?name=${hostname}&type=A`, {
+        const queryType = isClientIpv6 ? "AAAA" : "A";
+        const dnsRes = await fetch(`https://cloudflare-dns.com/dns-query?name=${hostname}&type=${queryType}`, {
           headers: { accept: "application/dns-json" }
         });
         if (dnsRes.ok) {
           const json = await dnsRes.json();
           if (json.Answer && json.Answer.length > 0) {
-            const aRecords = json.Answer.filter(ans => ans.type === 1);
-            if (aRecords.length > 0) {
-              serverIp = aRecords[0].data;
+            const targetType = isClientIpv6 ? 28 : 1; // 28 is AAAA, 1 is A
+            const records = json.Answer.filter(ans => ans.type === targetType);
+            if (records.length > 0) {
+              serverIp = records[0].data;
             }
           }
         }
       } else {
-        serverIp = "127.0.0.1";
+        serverIp = isClientIpv6 ? "::1" : "127.0.0.1";
       }
     } catch (e) {
       serverIp = "未知";
@@ -221,6 +224,10 @@ const currentYear = new Date().getFullYear();
   }
 
   // Hook into swup navigation to run on page load and page switch
-  document.addEventListener('DOMContentLoaded', detectCDN);
+  if (document.readyState === "loading") {
+    document.addEventListener('DOMContentLoaded', detectCDN);
+  } else {
+    detectCDN();
+  }
   document.addEventListener('swup:contentReplaced', detectCDN);
 </script>
