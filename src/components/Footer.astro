@@ -89,6 +89,80 @@ const currentYear = new Date().getFullYear();
 </div>
 
 <script is:inline>
+  async function getGeoInfo(ip) {
+    if (!ip || ip === "未知" || ip === "127.0.0.1" || ip === "::1") return "";
+    
+    // Try vore.top first for Chinese data
+    try {
+      const res = await fetch(`https://api.vore.top/api/IPdata?ip=${ip}`, {
+        signal: AbortSignal.timeout(2000)
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.code === 200 && json.data) {
+          const d = json.data;
+          const geo = [];
+          if (d.country) {
+            if (d.country === "中国") {
+              if (d.region) geo.push(d.region.replace("省", "").replace("市", ""));
+              if (d.city && d.city !== d.region) geo.push(d.city.replace("市", ""));
+            } else {
+              geo.push(d.country);
+              if (d.city) geo.push(d.city);
+            }
+          }
+          let friendlyIsp = d.isp || "";
+          if (friendlyIsp.includes("电信")) friendlyIsp = "电信";
+          else if (friendlyIsp.includes("联通")) friendlyIsp = "联通";
+          else if (friendlyIsp.includes("移动")) friendlyIsp = "移动";
+          else if (friendlyIsp.includes("铁通")) friendlyIsp = "铁通";
+          else if (friendlyIsp.includes("广电")) friendlyIsp = "广电";
+          else if (friendlyIsp.includes("教育网")) friendlyIsp = "教育网";
+          
+          const geoStr = geo.join(" ");
+          return `${geoStr ? geoStr + " " : ""}${friendlyIsp}`.trim();
+        }
+      }
+    } catch (e) {
+      // Fallback to ip.sb
+    }
+
+    // Fallback to ip.sb
+    try {
+      const res = await fetch(`https://api.ip.sb/geoip/${ip}`, {
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(2000)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const geo = [];
+        if (data.country) {
+          if (data.country === "China") {
+            if (data.region) geo.push(data.region);
+            if (data.city && data.city !== data.region) geo.push(data.city);
+          } else {
+            geo.push(data.country);
+            if (data.city) geo.push(data.city);
+          }
+        }
+        const isp = data.organization || data.asn_organization || "";
+        let friendlyIsp = isp;
+        if (isp.includes("Chinanet") || isp.includes("China Telecom")) friendlyIsp = "电信";
+        else if (isp.includes("Unicom")) friendlyIsp = "联通";
+        else if (isp.includes("Mobile")) friendlyIsp = "移动";
+        else if (isp.includes("Tencent")) friendlyIsp = "腾讯云";
+        else if (isp.includes("Alibaba") || isp.includes("Aliyun")) friendlyIsp = "阿里云";
+        else if (isp.includes("Cloudflare")) friendlyIsp = "Cloudflare";
+        
+        const geoStr = geo.join(" ");
+        return `${geoStr ? geoStr + " " : ""}${friendlyIsp}`.trim();
+      }
+    } catch (e) {
+      // Silent fail
+    }
+    return "";
+  }
+
   async function detectCDN() {
     const hostname = window.location.hostname;
     const cdnInfo = document.getElementById("cdn-info");
@@ -170,9 +244,18 @@ const currentYear = new Date().getFullYear();
       serverIp = "未知";
     }
 
-    // Update DOM
+    // Update DOM (initial display)
     if (serverIpEl) serverIpEl.innerText = serverIp;
     if (clientIpEl) clientIpEl.innerText = clientIp;
+
+    // Fetch Geo info in background and update DOM
+    Promise.all([
+      getGeoInfo(serverIp),
+      getGeoInfo(clientIp)
+    ]).then(([serverGeo, clientGeo]) => {
+      if (serverGeo && serverIpEl) serverIpEl.innerText = `${serverIp} (${serverGeo})`;
+      if (clientGeo && clientIpEl) clientIpEl.innerText = `${clientIp} (${clientGeo})`;
+    });
 
     // Render Provider with logo
     let providerHtml = "";
