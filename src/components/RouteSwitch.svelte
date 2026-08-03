@@ -7,6 +7,10 @@ const routes = [
     url: "https://blog.ybovo.com",
   },
   {
+    name: "三网优化线路",
+    url: "https://vip.blog.ybovo.com",
+  },
+  {
     name: "全球线路 (Cloudflare)",
     url: "https://cf.blog.ybovo.com",
   },

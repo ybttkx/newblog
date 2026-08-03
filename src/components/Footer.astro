@@ -180,7 +180,10 @@ const currentYear = new Date().getFullYear();
     let coloCode = "";
 
     // 1. Detect provider from hostname
-    if (hostname.includes("vercel") || hostname === "ybovo.com" || hostname === "localhost" || hostname === "127.0.0.1") {
+    let isVip = false;
+    if (hostname.includes("vip")) {
+      isVip = true;
+    } else if (hostname.includes("vercel") || hostname === "ybovo.com" || hostname === "localhost" || hostname === "127.0.0.1") {
       isVercel = true;
     } else if (hostname.includes("cf") || hostname.includes("workers.dev") || hostname.includes("pages.dev")) {
       isCloudflare = true;
@@ -259,7 +262,14 @@ const currentYear = new Date().getFullYear();
 
     // Render Provider with logo
     let providerHtml = "";
-    if (isVercel) {
+    if (isVip) {
+      providerHtml = `
+        <div class="flex items-center gap-1.5 font-bold text-amber-600 dark:text-amber-400">
+          <img src="/SVG/vip.png" alt="三网优化" class="h-4 w-auto object-contain" />
+          <span>三网优化线路</span>
+        </div>
+      `;
+    } else if (isVercel) {
       providerHtml = `
         <div class="flex items-center gap-1 text-black dark:text-white font-semibold">
           <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 115 100" xmlns="http://www.w3.org/2000/svg">
