@@ -18,3 +18,8 @@
   - 输出 `REVIEW.md`（汇总，P0×2 / P1×11）与 `review/infra.md`、`review/frontend.md`、`review/content.md`
   - 主要问题：CI/平台构建缺 Pagefind、分类筛选断路、Footer 双实例+访客 IP 外发、astro check/biome 门禁红、文章 6 处可见错误、两篇随笔重复与口径冲突
 - 未修改任何源码；新增审阅文档并更新 SUMMARY/LOG
+
+## 2026-11-19
+- 新增教育随笔《收走，再收走》（`src/content/posts/收走再收走.md`）：记录检查前反复收走油印试卷、只补章改名的换课表，以及班主任的责任转嫁话术；按此前的内容审阅建议重排结构（质问提前、换课表单独成段）、统一“油印”用词、文首补亲历声明
+- 本地 `pnpm build` 通过：10 个页面，Pagefind 索引 7 页（zh-cn，2328 词），新文章页面渲染正常
+- 文章副本同步至 `C:\Users\yibai\Documents\blog\收走，再收走.md`

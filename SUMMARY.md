@@ -19,6 +19,7 @@
 - [x] 本地草稿与发布机制
 - [x] 多线路切换（RouteSwitch）与页脚 CDN/IP 信息（存在双实例与第三方 IP 查询问题）
 - [x] 评论系统（Giscus）
+- [x] 新增随笔《收走，再收走》（2026-11-19，文章共 6 篇）
 - [x] 全量代码审阅（2026-11-07）：`REVIEW.md` + `review/{infra,frontend,content}.md`，结论 P0×2 / P1×11
 
 ## 4. 已知主要问题（详见 REVIEW.md）
